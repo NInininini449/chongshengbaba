@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>重生之你是什么粑粑</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(160deg, #fdf3e3 0%, #fde8e0 50%, #fbe3ec 100%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+  .card {
+    width: 100%; max-width: 520px;
+    background: #fffdf9;
+    border-radius: 28px;
+    box-shadow: 0 18px 50px rgba(150, 100, 60, 0.18);
+    padding: 40px 32px;
+    text-align: center;
+    position: relative;
+    animation: pop .45s ease;
+  }
+  @keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes float { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-10px);} }
+  @keyframes wiggle { 0%,100% { transform: rotate(-3deg);} 50% { transform: rotate(3deg);} }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(16px);} to { opacity:1; transform: translateY(0);} }
+
+  h1 { font-size: 30px; color: #6b4a2f; margin-bottom: 10px; letter-spacing: 1px; }
+  .subtitle { color: #a0876a; font-size: 15px; margin-bottom: 26px; line-height: 1.7; }
+  .emoji-big { font-size: 64px; display: inline-block; animation: float 2.6s ease-in-out infinite; }
+
+  .btn {
+    display: inline-block; margin-top: 18px;
+    background: linear-gradient(135deg, #e8a15a, #d97b4f);
+    color: #fff; border: none; font-size: 18px; font-weight: bold;
+    padding: 14px 44px; border-radius: 999px; cursor: pointer;
+    box-shadow: 0 8px 20px rgba(217, 123, 79, .4);
+    transition: transform .15s, box-shadow .15s;
+    font-family: inherit;
+  }
+  .btn:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(217,123,79,.5); }
+  .btn:active { transform: translateY(0); }
+
+  /* 进度条 */
+  .progress-wrap { background: #f3e7d7; border-radius: 999px; height: 12px; margin: 6px 0 22px; overflow: hidden; }
+  .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #f0b46a, #e08a55); border-radius: 999px; transition: width .35s ease; }
+  .progress-text { color: #b09477; font-size: 13px; margin-bottom: 8px; }
+
+  .question { font-size: 21px; font-weight: bold; color: #5c4128; margin-bottom: 24px; line-height: 1.6; animation: fadeUp .4s ease; }
+  .q-tag { display: inline-block; background: #fbe8d2; color: #c07a3a; font-size: 12px; padding: 4px 14px; border-radius: 999px; margin-bottom: 14px; }
+
+  .options { display: flex; flex-direction: column; gap: 12px; }
+  .option {
+    background: #fff; border: 2px solid #f0e0cb; border-radius: 16px;
+    padding: 14px 18px; text-align: left; cursor: pointer;
+    font-size: 16px; color: #6b5236; line-height: 1.55;
+    transition: all .18s;
+    animation: fadeUp .4s ease;
+  }
+  .option:hover { border-color: #e8a15a; background: #fff8ee; transform: translateX(4px); }
+  .option .letter { display: inline-block; width: 26px; height: 26px; line-height: 26px; text-align: center; background: #f6e3c8; color: #b57b3f; border-radius: 50%; font-size: 13px; font-weight: bold; margin-right: 10px; }
+
+  /* 结果页 */
+  .result-emoji { animation: wiggle 2s ease-in-out infinite; display: inline-block; margin-bottom: 6px; }
+  .result-title { font-size: 26px; color: #6b4a2f; margin: 8px 0 4px; }
+  .result-sub { color: #c0895a; font-size: 14px; margin-bottom: 18px; }
+  .result-img { margin: 4px auto 10px; }
+  .result-desc { color: #7a5f42; font-size: 16px; line-height: 1.9; text-align: left; background: #fdf6ea; border-radius: 16px; padding: 18px 20px; margin-bottom: 16px; }
+  .quote { color: #c07a3a; font-style: italic; font-size: 15px; margin-bottom: 20px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 8px; }
+  .tag { background: #fdeedd; color: #bd7d3c; font-size: 13px; padding: 6px 14px; border-radius: 999px; }
+  .btn-secondary { background: #fff; color: #c07a3a; border: 2px solid #ecc79a; box-shadow: none; }
+  .btn-secondary:hover { background: #fff8ee; box-shadow: none; }
+
+  .deco { position: fixed; font-size: 30px; opacity: .35; animation: float 3.4s ease-in-out infinite; pointer-events: none; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<span class="deco" style="top:12%;left:8%;">🌾</span>
+<span class="deco" style="top:70%;left:6%;animation-delay:.8s;">✨</span>
+<span class="deco" style="top:18%;right:9%;animation-delay:1.2s;">💩</span>
+<span class="deco" style="top:78%;right:7%;animation-delay:.4s;">🌿</span>
+
+<div class="card" id="app"></div>
+
+<script>
+/* ================= 数据 ================= */
+const TYPES = {
+  cat: {
+    name: "猫屎", title: "高冷限定款猫屎", sub: "落点精准 · 拒绝解释",
+    color: "#a9b0b8", dark: "#8b939c",
+    tags: ["高冷", "优雅", "记仇", "独立", "揣着明白装糊涂"],
+    desc: "你是粑粑界的爱马仕——猫屎。形状优雅、落点精准、从不轻易出现，出现了也坚决假装不是自己拉的。你独来独往但内心门儿清，谁对你好谁欠你一句道歉，全记在小本本上。想吸你的人排到楼下，但你只会赏脸打个哈欠。你不需要讨好任何人，因为——你拉的屎都比别人有型。",
+    quote: "“朕不是不理你，朕只是在酝酿下一坨。”"
+  },
+  dog: {
+    name: "狗屎", title: "阳光热情款狗屎", sub: "哪里需要哪里拉 · 全场气氛组",
+    color: "#c98f5f", dark: "#a87144",
+    tags: ["热情", "忠诚", "自来熟", "嗓门大", "行动派"],
+    desc: "你是狗屎，但请注意——是那种出现在哪儿都能让气氛热起来的传奇狗屎。你对朋友掏心掏肺，对陌生人掏得更快，被拒绝三次还能笑嘻嘻地摇尾巴。你的情绪来得快去得也快，摔一跤都能当场编成段子。朋友们嘴上嫌弃你，实际离不开你：毕竟没有你的群里，连表情包都不好笑。",
+    quote: "“这不合理，但没关系，我先冲了再说！”"
+  },
+  cow: {
+    name: "牛屎", title: "踏实厚重款牛屎", sub: "量大管饱 · 任劳任怨",
+    color: "#8f7a52", dark: "#73613f",
+    tags: ["老实", "靠谱", "能扛", "话少", "存款殷实"],
+    desc: "你是牛屎，粑粑界的中流砥柱。扎实、厚重、从不整花活，别人吹牛的时候你在默默干活，别人摆烂的时候你还在默默干活。你是朋友口中“有你在就放心了”的那个存在，也是爸妈口中“别人家的孩子”。唯一的缺点是太老实，总被安排活儿。但放心，你拉的每一坨，都在滋养整片田野。",
+    quote: "“行，那我来吧。”（人生口头禅）"
+  },
+  rabbit: {
+    name: "兔屎", title: "软萌迷你款兔屎", sub: "颗颗分明 · 圆润无害",
+    color: "#c9a88a", dark: "#ab8768",
+    tags: ["软萌", "社恐", "易碎", "善良", "暗恋从不表白"],
+    desc: "你是兔屎，一粒一粒，圆润可爱，看着毫无攻击性，捏起来还有点硬核（内柔外刚是你本人）。你脸皮薄，被夸一句能红半天，被凶一句能记一礼拜。你嘴上说着“随便都行”，心里其实排练过八百遍怎么开口。全世界的尖锐到了你这里都会被软化——毕竟一颗小圆球，能有什么坏心思呢。",
+    quote: "“我没事啦……”（有事，且已经哭了）"
+  },
+  pigeon: {
+    name: "鸽子屎", title: "随机掉落款鸽子屎", sub: "落点全凭缘分 · 人体薛定谔",
+    color: "#9aa5b1", dark: "#7d8894",
+    tags: ["随缘", "失踪人口", "DDL 战神", "神出鬼没", "意外惊喜"],
+    desc: "你是鸽子屎，粑粑界的“惊吓盲盒”。上一秒还在鸽子窝里蹲着，下一秒精准掉落在某人的车盖上——你的出现永远是意外，你的消失永远是惯例。计划表列了十页，执行全看心情；但每次 DDL 逼近，你都能爆发出物种奇迹般的能量。大家抓不住你，但你总能莫名出现在最关键的时刻、最离谱的位置。",
+    quote: "“在忙，勿cue。”（正在床上刷第八小时手机）"
+  },
+  panda: {
+    name: "熊猫屎", title: "国宝躺平款熊猫屎", sub: "全球最贵粑粑 · 专业躺平",
+    color: "#a5c98f", dark: "#88ab71",
+    tags: ["躺平", "国宝", "吃喝睡循环", "被宠爱", "慢性子"],
+    desc: "恭喜你，测出了身价最高的粑粑——熊猫屎！吃着最贵的竹子，干着最少的活，被全世界宠着还没人敢说半个不字。你的人生哲学是：能坐着绝不站着，能躺着绝不坐着，急事？什么事能比睡觉急？别人卷生卷死，你卷了卷铺盖。这不是懒，这是天赋异禀——毕竟，有的屎生来就是国宝。",
+    quote: "“卷不动了，先吃根竹子躺一下。”"
+  }
+};
+
+const QUESTIONS = [
+  { q: "早上闹钟响了，你的第一反应是？", opts: [
+    ["关掉闹钟，世界与我无关", "panda"],
+    ["一秒弹起，精神抖擞开始喊人", "dog"],
+    ["假装没听见，但心里算好了还能再睡几分钟", "cat"],
+    ["慌慌张张跳起来，撞到桌角", "rabbit"] ]},
+  { q: "朋友突然发来「在吗？帮个忙」，你会？", opts: [
+    ["已读不回，晚点再装作刚看到", "cat"],
+    ["秒回「说！」", "dog"],
+    ["先问清楚要干什么，再决定装不装死", "pigeon"],
+    ["好好好啊好的，完全没听清是什么忙", "rabbit"] ]},
+  { q: "你的手机相册里最多的是什么？", opts: [
+    ["几乎没有照片，干净得像新买的手机", "cat"],
+    ["朋友们的丑照，随时准备打击报复", "dog"],
+    ["截图，全是「以防万一」的截图", "pigeon"],
+    ["吃了什么都要拍照留念", "cow"] ]},
+  { q: "如果突然放一天假，你会？", opts: [
+    ["彻底躺平，进化成一具人体骨头模型", "panda"],
+    ["出门！约人！安排得满满当当！", "dog"],
+    ["计划列了十个，最后在床上躺了一整天", "pigeon"],
+    ["睡到自然醒，安安静静做点喜欢的小事", "rabbit"] ]},
+  { q: "朋友私下最可能用哪个词形容你？", opts: [
+    ["「高冷」", "cat"],
+    ["「自来熟」", "dog"],
+    ["「神出鬼没」", "pigeon"],
+    ["「老实人」", "cow"] ]},
+  { q: "排队时被人插队，你会？", opts: [
+    ["不说话，冷冷盯着，用眼神执行死刑", "cat"],
+    ["直接开口：「后面排队去」", "dog"],
+    ["假装没看见，但内心记仇一百年", "rabbit"],
+    ["算了算了，让我一下又不会怎样", "cow"] ]},
+  { q: "你的钱包 / 余额现状是？", opts: [
+    ["月光，但每一分都花得很精致", "cat"],
+    ["大手大脚，请客第一名", "dog"],
+    ["说不清，钱总是莫名其妙消失", "pigeon"],
+    ["有存款，稳稳的幸福", "cow"] ]},
+  { q: "深夜 emo 的时候，你会？", opts: [
+    ["发一条朋友圈，五分钟后删掉", "cat"],
+    ["抓着朋友聊到对方想睡", "dog"],
+    ["刷手机刷到凌晨三点，什么都不想面对", "pigeon"],
+    ["抱着零食默默流泪", "rabbit"] ]},
+  { q: "面对领导 / 老师画饼，你会？", opts: [
+    ["嗯嗯哦哦，内心毫无波澜", "cat"],
+    ["真信了，还热血沸腾", "dog"],
+    ["饼在哪？我只看到摸鱼的机会", "pigeon"],
+    ["默默点头，然后继续干活", "cow"] ]},
+  { q: "你的社交电量大约能撑多久？", opts: [
+    ["独处才是充电，社交全是耗电", "cat"],
+    ["永动机，越 social 越精神", "dog"],
+    ["看心情：有时话痨，有时直接失踪", "pigeon"],
+    ["两小时封顶，之后只想回家", "rabbit"] ]},
+  { q: "走路摔了一跤，你的第一反应是？", opts: [
+    ["起来，掸灰，仿佛无事发生", "cat"],
+    ["当场大笑：「我刚才也太蠢了」", "dog"],
+    ["环顾四周确认没人看见，长舒一口气", "pigeon"],
+    ["脸红到耳根，恨不得原地蒸发", "rabbit"] ]},
+  { q: "你的拖延症巅峰战绩是？", opts: [
+    ["不拖延，日程表精确到分钟", "cat"],
+    ["说干就干，「拖延」是什么？", "dog"],
+    ["DDL 是我的第一生产力", "pigeon"],
+    ["明天再说，明天再说，天天再说", "panda"] ]},
+  { q: "如果重生了，你想过哪种生活？", opts: [
+    ["富贵闲人，躺着数钱", "panda"],
+    ["热热闹闹，家人朋友围一大桌", "dog"],
+    ["独自环游世界，想去哪去哪", "cat"],
+    ["归隐田园，种菜养花喂鸡", "cow"] ]}
+];
+
+/* ================= SVG 粑粑形象 ================= */
+function poopSVG(t, size) {
+  const { color, dark } = TYPES[t];
+  const s = size || 220;
+  let ears = "", extra = "";
+  if (t === "cat") ears = `
+    <polygon points="70,52 58,22 92,40" fill="${color}"/>
+    <polygon points="150,52 162,22 128,40" fill="${color}"/>
+    <polygon points="72,48 64,30 84,41" fill="#f7c8c8"/>
+    <polygon points="148,48 156,30 136,41" fill="#f7c8c8"/>
+    <line x1="40" y1="120" x2="66" y2="116" stroke="${dark}" stroke-width="2"/>
+    <line x1="40" y1="130" x2="66" y2="126" stroke="${dark}" stroke-width="2"/>
+    <line x1="180" y1="120" x2="154" y2="116" stroke="${dark}" stroke-width="2"/>
+    <line x1="180" y1="130" x2="154" y2="126" stroke="${dark}" stroke-width="2"/>`;
+  if (t === "dog") ears = `
+    <ellipse cx="58" cy="82" rx="18" ry="34" fill="${dark}" transform="rotate(18 58 82)"/>
+    <ellipse cx="162" cy="82" rx="18" ry="34" fill="${dark}" transform="rotate(-18 162 82)"/>`;
+  if (t === "cow") extra = `
+    <path d="M62,58 Q50,42 60,34 Q70,44 74,56 Z" fill="#e8ddc9"/>
+    <path d="M158,58 Q170,42 160,34 Q150,44 146,56 Z" fill="#e8ddc9"/>
+    <ellipse cx="78" cy="168" rx="14" ry="9" fill="#c49a7a" opacity=".7"/>
+    <ellipse cx="142" cy="168" rx="14" ry="9" fill="#c49a7a" opacity=".7"/>`;
+  if (t === "rabbit") return `
+    <svg width="${s}" height="${s}" viewBox="0 0 220 220">
+      <ellipse cx="110" cy="196" rx="70" ry="10" fill="#000" opacity=".08"/>
+      <ellipse cx="86" cy="40" rx="13" ry="38" fill="${color}" transform="rotate(-14 86 40)"/>
+      <ellipse cx="134" cy="40" rx="13" ry="38" fill="${color}" transform="rotate(14 134 40)"/>
+      <ellipse cx="86" cy="42" rx="7" ry="28" fill="#f4cfd0" transform="rotate(-14 86 42)"/>
+      <ellipse cx="134" cy="42" rx="7" ry="28" fill="#f4cfd0" transform="rotate(14 134 42)"/>
+      <circle cx="110" cy="118" r="58" fill="${color}"/>
+      <circle cx="80" cy="168" r="24" fill="${color}"/>
+      <circle cx="140" cy="168" r="24" fill="${color}"/>
+      <circle cx="86" cy="112" r="7" fill="#4a3524"/>
+      <circle cx="134" cy="112" r="7" fill="#4a3524"/>
+      <circle cx="88" cy="110" r="2.4" fill="#fff"/>
+      <circle cx="136" cy="110" r="2.4" fill="#fff"/>
+      <ellipse cx="84" cy="132" rx="9" ry="5" fill="#f2a8a8" opacity=".65"/>
+      <ellipse cx="136" cy="132" rx="9" ry="5" fill="#f2a8a8" opacity=".65"/>
+      <path d="M102,128 Q110,136 118,128" stroke="#4a3524" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </svg>`;
+  if (t === "pigeon") return `
+    <svg width="${s}" height="${s}" viewBox="0 0 220 220">
+      <ellipse cx="110" cy="196" rx="80" ry="10" fill="#000" opacity=".08"/>
+      <path d="M40,190 Q30,150 55,138 Q45,120 68,116 Q70,96 95,102 Q100,84 122,90 Q140,86 146,104 Q168,100 170,122 Q190,130 178,152 Q196,168 172,190 Z" fill="${color}"/>
+      <path d="M100,100 Q118,64 152,60 Q134,84 128,104 Z" fill="#c7ced6"/>
+      <circle cx="86" cy="132" r="7" fill="#3d4550"/>
+      <circle cx="128" cy="132" r="7" fill="#3d4550"/>
+      <circle cx="88" cy="130" r="2.4" fill="#fff"/>
+      <circle cx="130" cy="130" r="2.4" fill="#fff"/>
+      <path d="M96,152 Q107,160 118,152" stroke="#3d4550" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="80" cy="150" rx="9" ry="5" fill="#8fb4d9" opacity=".5"/>
+      <ellipse cx="134" cy="150" rx="9" ry="5" fill="#8fb4d9" opacity=".5"/>
+    </svg>`;
+  if (t === "panda") ears = `
+    <circle cx="66" cy="52" r="18" fill="#3a3a3a"/>
+    <circle cx="154" cy="52" r="18" fill="#3a3a3a"/>`;
+  return `
+    <svg width="${s}" height="${s}" viewBox="0 0 220 220">
+      <ellipse cx="110" cy="198" rx="74" ry="10" fill="#000" opacity=".08"/>
+      ${ears}
+      <path d="M30,192 Q20,158 52,146 Q38,124 66,114 Q58,90 88,84 Q86,60 112,58 Q138,58 136,82 Q166,82 160,108 Q190,114 178,140 Q202,156 186,178 Q190,192 168,192 Z" fill="${color}"/>
+      <path d="M112,58 Q138,58 136,82 Q166,82 160,108 Q190,114 178,140 Q202,156 186,178 Q190,192 168,192 L150,192 Q160,176 146,160 Q158,140 138,130 Q150,110 128,104 Q132,84 108,84 Q106,66 92,64 Z" fill="${dark}" opacity=".28"/>
+      <circle cx="86" cy="140" r="7.5" fill="#3a2e22"/>
+      <circle cx="134" cy="140" r="7.5" fill="#3a2e22"/>
+      <circle cx="88.5" cy="137.5" r="2.6" fill="#fff"/>
+      <circle cx="136.5" cy="137.5" r="2.6" fill="#fff"/>
+      <ellipse cx="78" cy="158" rx="9" ry="5.5" fill="#f2a8a8" opacity=".6"/>
+      <ellipse cx="142" cy="158" rx="9" ry="5.5" fill="#f2a8a8" opacity=".6"/>
+      <path d="M100,158 Q110,168 120,158" stroke="#3a2e22" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+      ${extra}
+    </svg>`;
+}
+
+/* ================= 状态 ================= */
+let qi = 0, scores = {}, idx = [0,1,2,3];
+const app = document.getElementById("app");
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+function renderStart(){
+  app.innerHTML = `
+    <span class="emoji-big">💩</span>
+    <h1>重生之你是什么粑粑</h1>
+    <p class="subtitle">你的外壳是人，灵魂却是一坨粑粑。<br>13 道抽象题，测出你的真身——<br>是有型的猫屎，还是躺平的熊猫屎？</p>
+    <button class="btn" onclick="startQuiz()">开始测试 ✨</button>`;
+}
+
+function startQuiz(){ qi = 0; scores = {}; renderQuestion(); }
+
+function renderQuestion(){
+  const q = QUESTIONS[qi];
+  const letters = ["A","B","C","D"];
+  idx = shuffle([0,1,2,3]);
+  app.innerHTML = `
+    <span class="q-tag">第 ${qi+1} / ${QUESTIONS.length} 题</span>
+    <div class="progress-wrap"><div class="progress-bar" style="width:${qi/QUESTIONS.length*100}%"></div></div>
+    <div class="question">${q.q}</div>
+    <div class="options">
+      ${idx.map((oi,i)=>`<div class="option" style="animation-delay:${i*0.07}s" onclick="answer('${q.opts[oi][1]}')"><span class="letter">${letters[i]}</span>${q.opts[oi][0]}</div>`).join("")}
+    </div>`;
+  requestAnimationFrame(()=>{ const bar=app.querySelector(".progress-bar"); if(bar) bar.style.width=(qi/QUESTIONS.length*100)+"%"; });
+}
+
+function answer(t){
+  scores[t] = (scores[t]||0) + 1;
+  qi++;
+  if (qi < QUESTIONS.length) renderQuestion();
+  else renderResult();
+}
+
+function renderResult(){
+  let best = null, bv = -1;
+  for (const k in scores) if (scores[k] > bv) { bv = scores[k]; best = k; }
+  const r = TYPES[best];
+  app.innerHTML = `
+    <span class="q-tag">🕯️ 重生完成，你的真身是 ——</span>
+    <div class="result-img" style="animation:fadeUp .5s ease">${poopSVG(best, 230)}</div>
+    <div class="result-title">${r.title}</div>
+    <div class="result-sub">${r.sub}</div>
+    <div class="tags">${r.tags.map(t=>`<span class="tag"># ${t}</span>`).join("")}</div>
+    <div class="result-desc">${r.desc}</div>
+    <div class="quote">${r.quote}</div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" onclick="startQuiz()">再测一次 🔄</button>
+      <button class="btn btn-secondary" onclick="saveImage()">保存形象卡 💾</button>
+    </div>`;
+}
+
+function saveImage(){
+  const svg = app.querySelector(".result-emoji, .result-img svg");
+  const svgEl = app.querySelector(".result-img svg");
+  if (!svgEl) return;
+  const xml = new XMLSerializer().serializeToString(svgEl);
+  const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = function(){
+    const c = document.createElement("canvas");
+    c.width = 220; c.height = 220;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#fffdf9"; ctx.fillRect(0,0,220,220);
+    ctx.drawImage(img, 0, 0);
+    const a = document.createElement("a");
+    a.download = "我的粑粑真身.png";
+    a.href = c.toDataURL("image/png");
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
+
+renderStart();
+</script>
+</body>
+</html>
